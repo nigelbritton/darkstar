@@ -14,11 +14,13 @@ function onTrigger(player,npc)
 	    player:addKeyItem(GREEN_INSTITUTE_CARD);
 	    player:messageSpecial(KEYITEM_OBTAINED, WINDURST_TRUST_PERMIT);
 	    player:messageSpecial(KEYITEM_OBTAINED, GREEN_INSTITUTE_CARD);
-    else if (player:getNation() == 2 and player:hasKeyItem(WINDURST_TRUST_PERMIT) and player:getMainLvl()>=5) then
-        if (player:hasKeyItem(GREEN_INSTITUTE_CARD) == false) then
-            player:addKeyItem(GREEN_INSTITUTE_CARD);
-            player:messageSpecial(KEYITEM_OBTAINED, GREEN_INSTITUTE_CARD);
-        end
+    else if (player:getNation() == 2 and player:hasKeyItem(GREEN_INSTITUTE_CARD) == false and player:getMainLvl()>=5) then
+        player:addKeyItem(GREEN_INSTITUTE_CARD);
+        player:messageSpecial(KEYITEM_OBTAINED, GREEN_INSTITUTE_CARD);
+        player:PrintToPlayer("Wetata : If you find any of those Cipher thingies, trade them to me.", 0xD);
+    else if (player:getNation() == 2 and player:hasKeyItem(GREEN_INSTITUTE_CARD) == false and player:getMainLvl()>=5) then
+        player:addKeyItem(GREEN_INSTITUTE_CARD);
+        player:messageSpecial(KEYITEM_OBTAINED, GREEN_INSTITUTE_CARD);
         player:PrintToPlayer("Wetata : If you find any of those Cipher thingies, trade them to me.", 0xD);
     else
         player:PrintToPlayer("Wetata : You seem to be from another Nation. Sadly I cantaru help you", 0xD);
