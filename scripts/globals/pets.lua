@@ -19,6 +19,7 @@ dsp.pet.type =
     AUTOMATON          = 4,
     ADVENTURING_FELLOW = 5,
     CHOCOBO            = 6,
+    PETTYPE_TRUST      = 7,
 }
 
 
@@ -85,6 +86,10 @@ dsp.pet.id =
 
     --  Puppetmaster
     AUTOMATON             = 69,
+
+    -- Trust
+    PET_KUPIPI            = 76,
+    PET_CURILLA           = 79,
 }
 
 -----------------------------------
