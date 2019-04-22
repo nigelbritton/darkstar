@@ -19,7 +19,7 @@ dsp.pet.type =
     AUTOMATON          = 4,
     ADVENTURING_FELLOW = 5,
     CHOCOBO            = 6,
-    PETTYPE_TRUST      = 7,
+    PETTYPE_TRUST      = 8,
 }
 
 
