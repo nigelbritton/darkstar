@@ -182,6 +182,15 @@ local function hpTeleport(player, option)
         if freeHpTeleport(player, hpIndex) then
             teleportCost = 0
         end
+        local nation = player:getNation()
+        local rank = getNationRank(nation)
+
+        if rank > 1 then
+            teleportCost = teleportCost - (rank - 1 * 100)
+            if (teleportCost < 100) then
+                teleportCost = 100
+            end
+        end
 
         if hasHP(player, hpIndex) and player:delGil(teleportCost) then
             player:setLocalVar("currentHpIndex", 0)
