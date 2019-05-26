@@ -3186,7 +3186,7 @@ inline int32 CLuaBaseEntity::getEquipID(lua_State *L)
 
         CItem* PItem = PChar->getEquip((SLOTTYPE)SLOT);
 
-        if ((PItem != nullptr) && PItem->isType(ITEM_ARMOR))
+        if ((PItem != nullptr) && PItem->isType(ITEM_EQUIPMENT))
         {
             lua_pushinteger(L, PItem->getID());
             return 1;
@@ -3295,7 +3295,7 @@ inline int32 CLuaBaseEntity::addItem(lua_State *L)
                 }
                 lua_pop(L, 2);
 
-                if (PItem->isType(ITEM_ARMOR))
+                if (PItem->isType(ITEM_EQUIPMENT))
                 {
                     lua_getfield(L, 1, "trial");
                     uint16 trial = (uint16)lua_tointeger(L, -1);
@@ -3381,7 +3381,7 @@ inline int32 CLuaBaseEntity::addItem(lua_State *L)
             {
                 PItem->setQuantity(quantity);
 
-                if (PItem->isType(ITEM_ARMOR))
+                if (PItem->isType(ITEM_EQUIPMENT))
                 {
                     if (augment0 != 0) ((CItemArmor*)PItem)->setAugment(0, augment0, augment0val);
                     if (augment1 != 0) ((CItemArmor*)PItem)->setAugment(1, augment1, augment1val);
@@ -4198,7 +4198,7 @@ inline int32 CLuaBaseEntity::storeWithPorterMoogle(lua_State *L)
             {
                 // TODO: Items need to be checked for an in-progress magian trial before storing.
                 //auto item = PChar->getStorage(LOC_INVENTORY)->GetItem(slotId);
-                //if (item->isType(ITEM_ARMOR) && ((CItemArmor*)item)->getTrialNumber() != 0)
+                //if (item->isType(ITEM_EQUIPMENT) && ((CItemArmor*)item)->getTrialNumber() != 0)
                 charutils::UpdateItem(PChar, LOC_INVENTORY, slotId, -1);
                 //else
                 //{
@@ -8325,7 +8325,7 @@ inline int32 CLuaBaseEntity::getParty(lua_State* L)
 
     lua_createtable(L, size, 0);
     int i = 1;
-    ((CBattleEntity*)m_PBaseEntity)->ForParty([this, &L, &i](CBattleEntity* member)
+    ((CBattleEntity*)m_PBaseEntity)->ForParty([&L, &i](CBattleEntity* member)
     {
         lua_getglobal(L, CLuaBaseEntity::className);
         lua_pushstring(L, "new");
@@ -8478,6 +8478,39 @@ inline int32 CLuaBaseEntity::getPartyLeader(lua_State* L)
 }
 
 /************************************************************************
+*  Function: forMembersInRange()
+*  Purpose : Apply function to party members within range
+*  Example : forMembersInRange(target, distance, function)
+*  Notes   :
+************************************************************************/
+
+inline int32 CLuaBaseEntity::forMembersInRange(lua_State* L)
+{
+    DSP_DEBUG_BREAK_IF(m_PBaseEntity == nullptr);
+    DSP_DEBUG_BREAK_IF(lua_isnil(L, 1) || !lua_isnumber(L, 1));
+    DSP_DEBUG_BREAK_IF(lua_isnil(L, 2) || !lua_isfunction(L, 2));
+
+    auto target = (CBattleEntity*)m_PBaseEntity;
+    auto range = (uint8)lua_tointeger(L, 1);
+    auto function = luautils::register_fp(2);
+
+    target->ForParty([&target, &range, &function](CBattleEntity* member)
+    {
+        if (target->loc.zone == member->loc.zone &&
+            distanceSquared(target->loc.p, member->loc.p) < (range * range))
+        {
+            luautils::pushFunc(function);
+            luautils::pushArg<CBattleEntity*>(member);
+            luautils::callFunc(1);
+        }
+    });
+
+    luautils::unregister_fp(function);
+
+    return 0;
+}
+
+/************************************************************************
 *  Function: addPartyEffect()
 *  Purpose : Adds effect to members of the entire party
 *  Example : player:addPartyEffect(EFFECT, 1, 2, 3, ...)?
@@ -8605,7 +8638,7 @@ inline int32 CLuaBaseEntity::getAlliance(lua_State* L)
     lua_createtable(L, size, 0);
     int i = 1;
 
-    PChar->ForAlliance([this, &L, &i](CBattleEntity* PMember)
+    PChar->ForAlliance([&L, &i](CBattleEntity* PMember)
     {
         lua_getglobal(L, CLuaBaseEntity::className);
         lua_pushstring(L, "new");
@@ -12843,10 +12876,10 @@ inline int32 CLuaBaseEntity::getSystem(lua_State* L)
 
 inline int32 CLuaBaseEntity::getFamily(lua_State* L)
 {
-    DSP_DEBUG_BREAK_IF(m_PBaseEntity == nullptr);
-    DSP_DEBUG_BREAK_IF(m_PBaseEntity->objtype != TYPE_MOB);
+    auto entity = dynamic_cast<CMobEntity*>(m_PBaseEntity);
+    DSP_DEBUG_BREAK_IF(!entity);
 
-    uint16 family = ((CMobEntity*)m_PBaseEntity)->m_Family;
+    uint16 family = entity->m_Family;
 
     lua_pushinteger(L, family);
     return 1;
@@ -14593,6 +14626,7 @@ Lunar<CLuaBaseEntity>::Register_t CLuaBaseEntity::methods[] =
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,hasPartyJob),
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,getPartyMember),
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,getPartyLeader),
+    LUNAR_DECLARE_METHOD(CLuaBaseEntity,forMembersInRange),
 
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,addPartyEffect),
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,hasPartyEffect),
@@ -14661,7 +14695,7 @@ Lunar<CLuaBaseEntity>::Register_t CLuaBaseEntity::methods[] =
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,timer),
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,queue),
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,addRecast),
-    LUNAR_DECLARE_METHOD(CLuaBaseEntity, hasRecast),
+    LUNAR_DECLARE_METHOD(CLuaBaseEntity,hasRecast),
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,resetRecast),
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,resetRecasts),
 
