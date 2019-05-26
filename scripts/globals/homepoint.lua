@@ -178,10 +178,23 @@ local function hpTeleport(player, option)
     if option == 2 or (option > 0x10000 and option < 0x7F0003) then
         local hpIndex = bit.rshift(option, 16)
         local teleportCost = homepoints[hpIndex][8]
+        local nation = player:getNation()
+        local rank = getNationRank(nation)
+
+        if HOMEPOINT_TELEPORT_DISCOUNT == 1 then
+            if rank > 1 then
+                teleportCost = teleportCost - (rank - 1 * 100)
+                if (teleportCost < 100) then
+                    teleportCost = 100
+                end
+            end
+        end
 
         if freeHpTeleport(player, hpIndex) then
             teleportCost = 0
         end
+
+        printf("teleportCost: %u", teleportCost);
 
         if hasHP(player, hpIndex) and player:delGil(teleportCost) then
             player:setLocalVar("currentHpIndex", 0)
